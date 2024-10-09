@@ -17,6 +17,7 @@ import (
 const (
 	UserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0.1 Safari/605.1.15"
 	BaseURL   = "https://69shuba.cx"
+	Retry     = 3
 )
 
 func main() {
@@ -38,22 +39,22 @@ func main() {
 		log.Panic(err)
 	}
 	defer file.Close()
+DOWNLOAD:
 	for idx, book := range category {
 		if idx < *startIndex {
 			continue
 		}
-		retryTimes := 3
 		if !strings.HasPrefix(book, "http") {
 			continue
 		}
-		for i := 0; i < retryTimes; i++ {
-			err = downloadCategory(book, file)
-			if err == nil {
-				break
+		for i := 0; i < Retry; i++ {
+			if downloadCategory(book, file) == nil {
+				continue DOWNLOAD
 			}
 			log.Printf("Retry %d times for %s", i+1, book)
 			time.Sleep(time.Second)
 		}
+		log.Printf("Failed to download %s", book)
 	}
 	log.Println("Downloaded all books")
 }
