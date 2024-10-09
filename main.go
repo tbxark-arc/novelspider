@@ -54,7 +54,7 @@ DOWNLOAD:
 			log.Printf("Retry %d times for %s", i+1, book)
 			time.Sleep(time.Second)
 		}
-		log.Printf("Failed to download %s", book)
+		log.Panicf("Failed to download %s", book)
 	}
 	log.Println("Downloaded all books")
 }
