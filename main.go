@@ -24,6 +24,7 @@ func main() {
 	id := flag.Int("id", 29624, "id of the books")
 	dir := flag.String("dir", "./", "directory to save the books")
 	startIndex := flag.Int("start", -1, "start index of the books")
+	interval := flag.Int("interval", 1, "seconds between each download")
 
 	flag.Parse()
 	if *id == 0 {
@@ -49,6 +50,7 @@ DOWNLOAD:
 		}
 		for i := 0; i < Retry; i++ {
 			if downloadCategory(book, file) == nil {
+				time.Sleep(time.Duration(*interval) * time.Second)
 				continue DOWNLOAD
 			}
 			log.Printf("Retry %d times for %s", i+1, book)
