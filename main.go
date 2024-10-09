@@ -22,6 +22,8 @@ const (
 func main() {
 	id := flag.Int("id", 29624, "id of the books")
 	dir := flag.String("dir", "./", "directory to save the books")
+	startIndex := flag.Int("start", -1, "start index of the books")
+
 	flag.Parse()
 	if *id == 0 {
 		log.Panic("Please provide the id of the books")
@@ -30,19 +32,22 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-	file := filepath.Join(*dir, title+".txt")
-	save, err := os.Create(file)
+	fileName := filepath.Join(*dir, title+".txt")
+	file, err := openOrCreateFile(fileName)
 	if err != nil {
 		log.Panic(err)
 	}
-	defer save.Close()
-	for _, book := range category {
+	defer file.Close()
+	for idx, book := range category {
+		if idx < *startIndex {
+			continue
+		}
 		retryTimes := 3
 		if !strings.HasPrefix(book, "http") {
 			continue
 		}
 		for i := 0; i < retryTimes; i++ {
-			err = downloadCategory(book, save)
+			err = downloadCategory(book, file)
 			if err == nil {
 				break
 			}
@@ -51,6 +56,14 @@ func main() {
 		}
 	}
 	log.Println("Downloaded all books")
+}
+
+func openOrCreateFile(fileName string) (*os.File, error) {
+	if _, err := os.Stat(fileName); os.IsNotExist(err) {
+		return os.Create(fileName)
+	} else {
+		return os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY, 0644)
+	}
 }
 
 func downloadCategory(book string, save *os.File) error {
