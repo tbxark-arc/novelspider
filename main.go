@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -36,25 +37,38 @@ func main() {
 	}
 	defer save.Close()
 	for _, book := range category {
+		retryTimes := 3
 		if !strings.HasPrefix(book, "http") {
 			continue
 		}
-		log.Printf("Downloading %s", book)
-		title, content, e := parseBook(book)
-		log.Printf("Downloaded %s", title)
-		if e != nil {
-			log.Panic(e)
-		}
-		_, e = save.WriteString(title + "\n")
-		if e != nil {
-			log.Panic(e)
-		}
-		_, e = save.WriteString(content + "\n")
-		if e != nil {
-			log.Panic(e)
+		for i := 0; i < retryTimes; i++ {
+			err = downloadCategory(book, save)
+			if err == nil {
+				break
+			}
+			log.Printf("Retry %d times for %s", i+1, book)
+			time.Sleep(time.Second)
 		}
 	}
 	log.Println("Downloaded all books")
+}
+
+func downloadCategory(book string, save *os.File) error {
+	log.Printf("Downloading %s", book)
+	cateTitle, content, err := parseBook(book)
+	log.Printf("Downloaded %s", cateTitle)
+	if err != nil {
+		return err
+	}
+	_, err = save.WriteString(cateTitle + "\n")
+	if err != nil {
+		return err
+	}
+	_, err = save.WriteString(content + "\n")
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func parseCategory(id int) (title string, category []string, err error) {
