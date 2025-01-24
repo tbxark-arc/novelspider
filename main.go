@@ -37,12 +37,15 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-	startDownload(load, &Config{
+	err = startDownload(load, &Config{
 		link:       *link,
 		dir:        *dir,
 		startIndex: *startIndex,
 		interval:   *interval,
 	})
+	if err != nil {
+		log.Panic(err)
+	}
 }
 
 func createParser(name string) (loader.Parser, error) {
@@ -56,16 +59,21 @@ func createParser(name string) (loader.Parser, error) {
 	}
 }
 
-func startDownload(parser loader.Parser, conf *Config) {
+func startDownload(parser loader.Parser, conf *Config) error {
 	title, category, err := parser.Category(conf.link)
 	if err != nil {
-		log.Panic(err)
+		return err
 	}
-	fileName := filepath.Join(conf.dir, title+".txt")
+	fileName, err := filepath.Abs(filepath.Join(conf.dir, title+".txt"))
+	if err != nil {
+		return err
+	}
 	file, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		log.Panic(err)
+		return err
 	}
+	log.Printf("Create file %s", fileName)
+	log.Printf("Start download %s", title)
 	defer file.Close()
 DOWNLOAD:
 	for idx, book := range category {
@@ -86,6 +94,7 @@ DOWNLOAD:
 		log.Panicf("Failed to download %s", book)
 	}
 	log.Println("Downloaded all books")
+	return nil
 }
 
 func loadAndWriteCategory(parser loader.Parser, book string, save *os.File) error {
@@ -103,5 +112,5 @@ func loadAndWriteCategory(parser loader.Parser, book string, save *os.File) erro
 	if err != nil {
 		return err
 	}
-	return nil
+	return save.Sync()
 }

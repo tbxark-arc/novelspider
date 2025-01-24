@@ -47,7 +47,7 @@ func (s *Sksw) Category(link string) (title string, category []string, err error
 		}
 		category = append(category, uri.Scheme+"://"+uri.Host+href)
 	})
-	title = doc.Find(".bread a").Last().Text()
+	title = doc.Find(".breadcrumb li").Last().Text()
 	return
 }
 
