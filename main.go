@@ -28,8 +28,13 @@ func main() {
 	flag.StringVar(&conf.dir, "dir", "./", "directory to save the books")
 	flag.IntVar(&conf.startIndex, "start", -1, "start index of the books")
 	flag.IntVar(&conf.interval, "interval", 1, "seconds between each download")
-	parser := flag.String("parser", "shuba69", "parser of the books")
+	parser := flag.String("parser", "", "parser of the books, support: shuba69, sksw")
+	help := flag.Bool("help", false, "show help")
 	flag.Parse()
+	if *help {
+		flag.Usage()
+		return
+	}
 	if conf.link == "" {
 		log.Panic("Please provide the link of the books")
 	}
