@@ -23,26 +23,21 @@ type Config struct {
 }
 
 func main() {
-	link := flag.String("link", "", "link of the books")
-	parser := flag.String("parser", "shuba69", "parser to use")
-	dir := flag.String("dir", "./", "directory to save the books")
-	startIndex := flag.Int("start", -1, "start index of the books")
-	interval := flag.Int("interval", 1, "seconds between each download")
-
+	var conf Config
+	flag.StringVar(&conf.link, "link", "", "link of the books")
+	flag.StringVar(&conf.dir, "dir", "./", "directory to save the books")
+	flag.IntVar(&conf.startIndex, "start", -1, "start index of the books")
+	flag.IntVar(&conf.interval, "interval", 1, "seconds between each download")
+	parser := flag.String("parser", "shuba69", "parser of the books")
 	flag.Parse()
-	if *link == "" {
+	if conf.link == "" {
 		log.Panic("Please provide the link of the books")
 	}
 	load, err := createParser(*parser)
 	if err != nil {
 		log.Panic(err)
 	}
-	err = startDownload(load, &Config{
-		link:       *link,
-		dir:        *dir,
-		startIndex: *startIndex,
-		interval:   *interval,
-	})
+	err = startDownload(load, &conf)
 	if err != nil {
 		log.Panic(err)
 	}
